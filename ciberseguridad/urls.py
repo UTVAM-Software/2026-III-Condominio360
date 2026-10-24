@@ -16,8 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth.decorators import login_required
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('finanzas', include('app.urls'))
+    path('finanzas', include('finanza.urls')),
+    path('recibo', include('recibo.urls')),
+    path('gastos', include('gastos.urls')),
+    path('correo', include('correo.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),  # login, logout, etc.
+    path('', login_required(TemplateView.as_view(template_name='inicio.html')), name='inicio'),
+    path('seguridad/', include('usuario.urls_seguridad')),
+    path('gasto/', include('gasto.urls')),
+    # una línea por cada app: finanza, recibo, correo, etc.
 ]
+
+
+

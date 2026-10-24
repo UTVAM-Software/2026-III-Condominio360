@@ -1,0 +1,25 @@
+<!DOCTYPE html> <!-- finanza/registros.html -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registros</title>
+</head>
+<body>
+    <h1>Registros</h1>
+        <form action="registros.php" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        {% extends 'base.html' %}
+{% block contenido %}
+<h1>Iniciar sesión</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Entrar</button>
+</form>
+{% endblock %}
+    </form>
+</body>
+</html>

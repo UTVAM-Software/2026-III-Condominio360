@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<h1>{{ titulo }}</h1>
+{% if puede_crear %}
+<a href="{{ url_crear }}" class="btn btn-primary mb-3">Nuevo</a>
+{% endif %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Fecha</th>
+            <th>Cantidad</th>
+            <th>Deuda</th>
+            <th>Días de retraso</th>
+            <th>Descripción</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in object_list %}
+        <tr>
+            <td>{{ obj.nombre }}</td>
+            <td>{{ obj.fecha }}</td>
+            <td>{{ obj.cantidad }}</td>
+            <td>{{ obj.deuda }}</td>
+            <td>{{ obj.dias_retraso }}</td>
+            <td>{{ obj.descripcion }}</td>
+            <td>
+                {% if puede_editar %}<a href="{% url url_editar obj.pk %}">Editar</a>{% endif %}
+                {% if puede_eliminar %}<a href="{% url url_eliminar obj.pk %}">Eliminar</a>{% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No hay gastos registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

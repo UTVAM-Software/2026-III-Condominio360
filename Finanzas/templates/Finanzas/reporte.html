@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h1 class="h3 mb-0">Reporte de {{ mes_nombre }} {{ anio }}</h1>
+    <form method="get" class="d-flex gap-2 no-imprimir">
+        <select name="mes" class="form-select">
+            {% for n, nombre in meses %}<option value="{{ n }}" {% if n == mes %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+        </select>
+        <select name="anio" class="form-select">
+            {% for a in anios %}<option value="{{ a }}" {% if a == anio %}selected{% endif %}>{{ a }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-primary">Ver</button>
+        <a class="btn btn-outline-success" href="?mes={{ mes }}&anio={{ anio }}&formato=csv">CSV</a>
+        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted">{% if es_admin %}Cobrado{% else %}Pagado{% endif %}</div>
+        <div class="tarjeta-num text-success">${{ resumen.cobrado|floatformat:2 }}</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted">Aportaciones del mes</div>
+        <div class="tarjeta-num">${{ resumen.esperado|floatformat:2 }}</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted">Sin pagar</div>
+        <div class="tarjeta-num text-warning">${{ resumen.pendiente|floatformat:2 }}</div>
+    </div></div></div>
+    {% if es_admin %}
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted">Gastos / Balance</div>
+        <div class="tarjeta-num text-danger">${{ resumen.gastos|floatformat:2 }}</div>
+        <div class="small {% if resumen.balance < 0 %}text-danger{% else %}text-success{% endif %}">Balance: ${{ resumen.balance|floatformat:2 }}</div>
+    </div></div></div>
+    {% endif %}
+</div>
+
+{% include 'Finanzas/_graficas.html' %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">Pagos recibidos en {{ mes_nombre }}</div>
+    <div class="table-responsive"><table class="table mb-0">
+        <thead><tr><th>No.</th>{% if es_admin %}<th>Residente</th>{% endif %}<th>Concepto</th><th>Fecha</th><th>Monto</th><th>Método</th></tr></thead>
+        <tbody>
+        {% for r in recibos %}
+            <tr>
+                <td>{{ r.numero|stringformat:"05d" }}</td>
+                {% if es_admin %}<td>{{ r.aportacion.residente.get_full_name|default:r.aportacion.residente.username }}</td>{% endif %}
+                <td>{{ r.aportacion.concepto }}</td><td>{{ r.fecha|date:"d/m/Y" }}</td><td>${{ r.monto }}</td><td>{{ r.metodo }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-3">Sin pagos en este mes.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">Aportaciones con vencimiento en {{ mes_nombre }}</div>
+    <div class="table-responsive"><table class="table mb-0">
+        <thead><tr>{% if es_admin %}<th>Residente</th>{% endif %}<th>Concepto</th><th>Monto</th><th>Fecha límite</th><th>Estado</th></tr></thead>
+        <tbody>
+        {% for a in aportaciones %}
+            <tr>
+                {% if es_admin %}<td>{{ a.residente.get_full_name|default:a.residente.username }}</td>{% endif %}
+                <td>{{ a.concepto }}</td><td>${{ a.monto }}</td><td>{{ a.fecha_limite|date:"d/m/Y" }}</td>
+                <td>{% if a.pagada %}<span class="badge bg-success">Pagada</span>
+                    {% elif a.dias_retraso %}<span class="badge bg-danger">Vencida</span>
+                    {% else %}<span class="badge bg-warning text-dark">Pendiente</span>{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-3">Sin aportaciones en este mes.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</div>
+
+{% if es_admin %}
+<div class="card shadow-sm">
+    <div class="card-header">Gastos de {{ mes_nombre }}</div>
+    <div class="table-responsive"><table class="table mb-0">
+        <thead><tr><th>Nombre</th><th>Fecha</th><th>Cantidad</th><th>Deuda</th><th>Descripción</th></tr></thead>
+        <tbody>
+        {% for g in gastos %}
+            <tr><td>{{ g.nombre }}</td><td>{{ g.fecha|date:"d/m/Y" }}</td><td>${{ g.cantidad }}</td><td>${{ g.deuda }}</td><td>{{ g.descripcion }}</td></tr>
+        {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-3">Sin gastos en este mes.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<h1 class="h3 mb-4">{% if es_admin %}Panel del condominio{% else %}Mi cuenta{% endif %}</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">{% if es_admin %}Total cobrado{% else %}Total pagado{% endif %}</div>
+            <div class="tarjeta-num text-success">${{ total_cobrado|floatformat:2 }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">Por cobrar ({{ num_pendientes }})</div>
+            <div class="tarjeta-num text-warning">${{ total_por_cobrar|floatformat:2 }}</div>
+        </div></div>
+    </div>
+    {% if es_admin %}
+    <div class="col-md-3">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">Gastos</div>
+            <div class="tarjeta-num text-danger">${{ total_gastos|floatformat:2 }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">Balance (cobrado − gastos)</div>
+            <div class="tarjeta-num">${{ balance|floatformat:2 }}</div>
+            <div class="small text-muted">{{ num_usuarios }} usuarios activos</div>
+        </div></div>
+    </div>
+    {% else %}
+    <div class="col-md-3">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">Vencidas</div>
+            <div class="tarjeta-num text-danger">{{ num_vencidas }}</div>
+        </div></div>
+    </div>
+    {% endif %}
+</div>
+
+{% include 'Finanzas/_graficas.html' %}
+
+<div class="card shadow-sm">
+    <div class="card-header">{% if es_admin %}Aportaciones vencidas (morosos){% else %}Mis aportaciones vencidas{% endif %}</div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr>
+                {% if es_admin %}<th>Residente</th>{% endif %}
+                <th>Concepto</th><th>Monto</th><th>Venció</th><th>Días de retraso</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for a in vencidas %}
+                <tr>
+                    {% if es_admin %}<td>{{ a.residente.get_full_name|default:a.residente.username }}</td>{% endif %}
+                    <td>{{ a.concepto }}</td>
+                    <td>${{ a.monto }}</td>
+                    <td>{{ a.fecha_limite|date:"d/m/Y" }}</td>
+                    <td><span class="badge bg-danger">{{ a.dias_retraso }}</span></td>
+                    <td>
+                        {% if es_admin %}<a class="btn btn-sm btn-success" href="{% url 'recibo:crear' a.pk %}">Registrar pago</a>
+                        {% else %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'aportacion:detalle' a.pk %}">Ver</a>{% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-3">No hay aportaciones vencidas.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header">{% if es_admin %}Balance de los últimos 6 meses{% else %}Mis pagos de los últimos 6 meses{% endif %}</div>
+            <div class="card-body" style="height: 320px;"><canvas id="graficaBalance"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header">Estado de las aportaciones</div>
+            <div class="card-body" style="height: 320px;"><canvas id="graficaEstado"></canvas></div>
+        </div>
+    </div>
+</div>
+
+{{ grafica|json_script:"datos-grafica" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var d = JSON.parse(document.getElementById('datos-grafica').textContent);
+    var datasets = [
+        { type: 'bar', label: d.es_admin ? 'Cobrado' : 'Pagado', data: d.cobrado, backgroundColor: '#198754' }
+    ];
+    if (d.es_admin) {
+        datasets.push({ type: 'bar', label: 'Gastos', data: d.gastos, backgroundColor: '#dc3545' });
+        datasets.push({ type: 'line', label: 'Balance', data: d.balance, borderColor: '#0d6efd',
+                        backgroundColor: '#0d6efd', tension: 0.25 });
+    } else {
+        datasets.push({ type: 'bar', label: 'Pendiente', data: d.pendiente, backgroundColor: '#ffc107' });
+    }
+    new Chart(document.getElementById('graficaBalance'), {
+        data: { labels: d.etiquetas, datasets: datasets },
+        options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+    new Chart(document.getElementById('graficaEstado'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Pagadas', 'Pendientes', 'Vencidas'],
+            datasets: [{ data: d.estado, backgroundColor: ['#198754', '#ffc107', '#dc3545'] }]
+        },
+        options: { maintainAspectRatio: false }
+    });
+})();
+</script>

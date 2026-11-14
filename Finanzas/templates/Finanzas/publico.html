@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ info.nombre }}{% endblock %}
+{% block contenido %}
+<div class="p-4 p-md-5 mb-4 bg-white rounded-3 shadow-sm">
+    <h1 class="display-6 fw-bold">Bienvenido a {{ info.nombre }}</h1>
+    <p class="lead mb-3">{{ info.descripcion }}</p>
+    <p class="text-muted mb-3">Estás navegando como <strong>visitante</strong>: puedes consultar la información pública sin necesidad de registrarte.</p>
+    <a href="{% url 'login' %}" class="btn btn-outline-secondary">Soy residente o administrador</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">Avisos</div>
+            <ul class="list-group list-group-flush">
+                {% for a in avisos %}
+                <li class="list-group-item">
+                    <strong>{{ a.titulo }}</strong>
+                    <span class="text-muted small"> · {{ a.creado|date:"d/m/Y" }}</span>
+                    <div>{{ a.contenido }}</div>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">No hay avisos por ahora.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header">Reglas para visitantes</div>
+            <ul class="list-group list-group-flush">
+                {% for regla in info.reglamento %}<li class="list-group-item">{{ regla }}</li>{% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">Contacto</div>
+            <div class="card-body">
+                <p class="mb-1"><strong>Dirección:</strong> {{ info.direccion }}</p>
+                <p class="mb-1"><strong>Horario:</strong> {{ info.horario }}</p>
+                <p class="mb-1"><strong>Teléfono:</strong> {{ info.telefono }}</p>
+                <p class="mb-0"><strong>Correo:</strong> {{ info.correo }}</p>
+            </div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header">Áreas comunes</div>
+            <ul class="list-group list-group-flush">
+                {% for area in info.areas %}<li class="list-group-item">{{ area }}</li>{% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

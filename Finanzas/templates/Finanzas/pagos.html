@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<h1 class="h3 mb-4">{% if es_admin %}Pagos y cobranza{% else %}Mis pagos{% endif %}</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">{% if es_admin %}Total por cobrar{% else %}Lo que debo{% endif %}</div>
+            <div class="tarjeta-num text-warning">${{ total_adeudo|floatformat:2 }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">Vencido</div>
+            <div class="tarjeta-num text-danger">${{ total_vencido|floatformat:2 }}</div>
+        </div></div>
+    </div>
+    {% if es_admin %}
+    <div class="col-md-4">
+        <div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted">Cobrado este mes</div>
+            <div class="tarjeta-num text-success">${{ cobrado_mes|floatformat:2 }}</div>
+        </div></div>
+    </div>
+    {% endif %}
+</div>
+
+{% if not es_admin %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">¿Cómo pagar?</div>
+    <div class="card-body">
+        <dl class="row mb-2">
+            <dt class="col-sm-3">Banco</dt><dd class="col-sm-9">{{ datos_pago.banco }}</dd>
+            <dt class="col-sm-3">Titular</dt><dd class="col-sm-9">{{ datos_pago.titular }}</dd>
+            <dt class="col-sm-3">CLABE</dt><dd class="col-sm-9"><code>{{ datos_pago.clabe }}</code></dd>
+            <dt class="col-sm-3">Referencia</dt><dd class="col-sm-9"><strong>{{ referencia }}</strong></dd>
+        </dl>
+        <p class="text-muted mb-2">{{ datos_pago.instrucciones }}</p>
+        <p class="mb-0"><strong>Pago en línea:</strong> usa el botón «Pagar con PayPal» en tu lista de pendientes ({{ moneda }}). Tu recibo se genera al instante cuando el pago se confirma.</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">{% if es_admin %}Aportaciones pendientes de cobro{% else %}Lo que debo{% endif %}</div>
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead><tr>
+                {% if es_admin %}<th>Residente</th>{% endif %}
+                <th>Concepto</th><th>Monto</th><th>Fecha límite</th><th>Estado</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for a in pendientes %}
+                <tr>
+                    {% if es_admin %}<td>{{ a.residente.get_full_name|default:a.residente.username }}</td>{% endif %}
+                    <td>{{ a.concepto }}</td>
+                    <td>${{ a.monto }}</td>
+                    <td>{{ a.fecha_limite|date:"d/m/Y" }}</td>
+                    <td>{% if a.dias_retraso %}<span class="badge bg-danger">Vencida · {{ a.dias_retraso }} días</span>
+                        {% else %}<span class="badge bg-warning text-dark">Pendiente</span>{% endif %}</td>
+                    {% if es_admin %}<td class="text-end"><a class="btn btn-sm btn-success" href="{% url 'recibo:crear' a.pk %}">Registrar pago</a></td>
+                    {% else %}<td class="text-end">
+                        <form method="post" action="{% url 'recibo:paypal_iniciar' a.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-primary" {% if not paypal_activo %}disabled title="Pago en línea no disponible"{% endif %}>Pagar con PayPal</button>
+                        </form>
+                    </td>{% endif %}
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-center text-success py-3">¡Todo al corriente! No hay pagos pendientes.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if es_admin %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">Estado de cuenta por residente</div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Residente</th><th>Depto.</th><th>Pagado</th><th>Adeudo</th></tr></thead>
+            <tbody>
+            {% for r in residentes %}
+                <tr>
+                    <td>{{ r.get_full_name|default:r.username }}</td>
+                    <td>{{ r.perfil.unidad }}</td>
+                    <td class="text-success">${{ r.pagado|default:0|floatformat:2 }}</td>
+                    <td class="{% if r.adeudo %}text-danger{% endif %}">${{ r.adeudo|default:0|floatformat:2 }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No hay residentes registrados.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-header">{% if es_admin %}Últimos pagos recibidos{% else %}Mis pagos realizados{% endif %}</div>
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead><tr>
+                <th>Recibo</th>{% if es_admin %}<th>Residente</th>{% endif %}
+                <th>Concepto</th><th>Fecha</th><th>Monto</th><th>Método</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for r in historial %}
+                <tr>
+                    <td>{{ r.numero|stringformat:"05d" }}</td>
+                    {% if es_admin %}<td>{{ r.aportacion.residente.get_full_name|default:r.aportacion.residente.username }}</td>{% endif %}
+                    <td>{{ r.aportacion.concepto }}</td>
+                    <td>{{ r.fecha|date:"d/m/Y" }}</td>
+                    <td>${{ r.monto }}</td>
+                    <td>{{ r.metodo }}</td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'recibo:detalle' r.pk %}">Ver recibo</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-3">Aún no hay pagos registrados.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

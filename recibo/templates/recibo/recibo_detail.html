@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<div class="card shadow-sm"><div class="card-body p-4">
+    <div class="d-flex justify-content-between">
+        <h1 class="h4">Recibo No. {{ recibo.numero|stringformat:"05d" }}</h1>
+        <strong>Condominio360</strong>
+    </div>
+    <hr>
+    <dl class="row mb-3">
+        <dt class="col-sm-3">Recibimos de</dt>
+        <dd class="col-sm-9">{{ recibo.aportacion.residente.get_full_name|default:recibo.aportacion.residente.username }}</dd>
+        <dt class="col-sm-3">Concepto</dt><dd class="col-sm-9">{{ recibo.aportacion.concepto }}</dd>
+        <dt class="col-sm-3">Monto</dt><dd class="col-sm-9"><strong>${{ recibo.monto }}</strong></dd>
+        <dt class="col-sm-3">Fecha de pago</dt><dd class="col-sm-9">{{ recibo.fecha|date:"d/m/Y" }}</dd>
+        <dt class="col-sm-3">Método</dt><dd class="col-sm-9">{{ recibo.metodo }}</dd>
+        {% if recibo.observaciones %}<dt class="col-sm-3">Observaciones</dt><dd class="col-sm-9">{{ recibo.observaciones }}</dd>{% endif %}
+    </dl>
+    <div class="no-imprimir">
+        <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
+        <a class="btn btn-secondary" href="{% url 'recibo:lista' %}">Volver</a>
+    </div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<h1 class="h3 mb-3">{% if es_admin %}Recibos{% else %}Mis recibos{% endif %}</h1>
+<div class="card shadow-sm"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+    <thead><tr>
+        <th>No.</th>{% if es_admin %}<th>Residente</th>{% endif %}
+        <th>Concepto</th><th>Fecha</th><th>Monto</th><th>Método</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for r in recibos %}
+        <tr>
+            <td><a href="{% url 'recibo:detalle' r.pk %}">{{ r.numero|stringformat:"05d" }}</a></td>
+            {% if es_admin %}<td>{{ r.aportacion.residente.get_full_name|default:r.aportacion.residente.username }}</td>{% endif %}
+            <td>{{ r.aportacion.concepto }}</td>
+            <td>{{ r.fecha|date:"d/m/Y" }}</td>
+            <td>${{ r.monto }}</td>
+            <td>{{ r.metodo }}</td>
+            <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'recibo:detalle' r.pk %}">Ver</a>
+                {% if es_admin %}<a class="btn btn-sm btn-outline-danger" href="{% url 'recibo:eliminar' r.pk %}">Eliminar</a>{% endif %}
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-3">Aún no hay recibos.</td></tr>
+    {% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}

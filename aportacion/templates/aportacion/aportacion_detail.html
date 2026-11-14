@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h4">{{ aportacion.concepto }}</h1>
+    <dl class="row mb-3">
+        <dt class="col-sm-3">Residente</dt><dd class="col-sm-9">{{ aportacion.residente.get_full_name|default:aportacion.residente.username }}</dd>
+        <dt class="col-sm-3">Monto</dt><dd class="col-sm-9">${{ aportacion.monto }}</dd>
+        <dt class="col-sm-3">Fecha límite</dt><dd class="col-sm-9">{{ aportacion.fecha_limite|date:"d/m/Y" }}</dd>
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
+            {% if aportacion.pagada %}<span class="badge bg-success">Pagada</span>
+            {% elif aportacion.dias_retraso %}<span class="badge bg-danger">Vencida · {{ aportacion.dias_retraso }} días</span>
+            {% else %}<span class="badge bg-warning text-dark">Pendiente</span>{% endif %}
+        </dd>
+    </dl>
+    {% if aportacion.recibo %}<a class="btn btn-outline-success" href="{% url 'recibo:detalle' aportacion.recibo.pk %}">Ver recibo</a>
+    {% elif es_admin %}<a class="btn btn-success" href="{% url 'recibo:crear' aportacion.pk %}">Registrar pago</a>{% endif %}
+    <a class="btn btn-secondary" href="{% url 'aportacion:lista' %}">Volver</a>
+</div></div>
+{% endblock %}

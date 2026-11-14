@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <h1 class="h4">Eliminar</h1>
+        <p>¿Seguro que quieres eliminar «{{ object }}»? Esta acción no se puede deshacer.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+            <a href="{{ url_cancelar }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
